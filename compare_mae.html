@@ -140,27 +140,27 @@
     // ================================================================
     // FUNCTION: syncValue
     // ================================================================
-    // This function synchronizes the values between the slider and number input for each parameter.
+    // This function synchronizes the values between the slider and the number input
+    // for each parameter. The number input is the "master" value used for calculations.
     // 'prefix' is the base identifier (e.g., "B1_linear").
-    // 'source' indicates if the update was triggered from the slider ("slider") or the number input ("number").
+    // 'source' indicates if the update was triggered by the slider ("slider")
+    // or by the number input ("number").
     function syncValue(prefix, source) {
       // Retrieve the slider element.
       const slider = document.getElementById(prefix);
-      // Retrieve the corresponding number input element (with "_num" appended to its id).
+      // Retrieve the number input element (with "_num" appended to its id).
       const number = document.getElementById(prefix + "_num");
       
-      // If the slider triggered the update, copy its value to the number input.
-      // If the number input triggered the update, use its (more precise) value.
       if (source === "slider") {
+        // When the slider is moved, update the number input (coarse value) and display.
         number.value = slider.value;
+        document.getElementById(prefix + "_value").textContent = slider.value;
       } else {
-        slider.value = number.value;
+        // When a user types in the number input, use that precise value.
+        // Do not overwrite it with the slider's value.
+        document.getElementById(prefix + "_value").textContent = number.value;
       }
-      
-      // Update the display element that shows the current value.
-      document.getElementById(prefix + "_value").textContent = slider.value;
-      
-      // Redraw the plots with the new parameter values.
+      // Update the plots using the master values from the number inputs.
       updatePlot();
     }
     
@@ -175,7 +175,7 @@
       for (let i = 0; i < 30; i++) {
         // Generate a random x value between 0 and 2000.
         let x_val = Math.random() * 2000;
-        // Introduce random noise to simulate variability.
+        // Introduce random noise to simulate data variability.
         let noise = (Math.random() - 0.5) * 200;
         // Compute y using a quadratic relationship plus noise.
         let y_val = 100 + 0.75 * x_val - 0.0002 * Math.pow(x_val, 2) + noise;
@@ -195,30 +195,28 @@
     // FUNCTION: updatePlot
     // ================================================================
     // This function:
-    // - Retrieves current parameter values (using the slider values, which may be updated by the number input).
+    // - Retrieves the current parameter values from the number inputs (ensuring any extra precision is used).
     // - Updates the displayed equations and MAE for both models.
     // - Calculates fitted values for both the linear and quadratic models.
-    // - Draws vertical dotted lines from each actual data point (blue dot) to its fitted value.
+    // - Draws vertical dotted lines (error lines) from each actual data point to its corresponding fitted value.
     // - Renders the updated plots using Plotly.
     function updatePlot() {
-      // Retrieve current values for the linear model parameters.
-      let B0_linear = parseFloat(document.getElementById("B0_linear").value);
-      let B1_linear = parseFloat(document.getElementById("B1_linear").value);
+      // Retrieve current values for the linear model from the number inputs.
+      let B0_linear = parseFloat(document.getElementById("B0_linear_num").value);
+      let B1_linear = parseFloat(document.getElementById("B1_linear_num").value);
       
-      // Retrieve current values for the quadratic model parameters.
-      let B0_quadratic = parseFloat(document.getElementById("B0_quadratic").value);
-      let B1_quadratic = parseFloat(document.getElementById("B1_quadratic").value);
-      let B2_quadratic = parseFloat(document.getElementById("B2_quadratic").value);
+      // Retrieve current values for the quadratic model from the number inputs.
+      let B0_quadratic = parseFloat(document.getElementById("B0_quadratic_num").value);
+      let B1_quadratic = parseFloat(document.getElementById("B1_quadratic_num").value);
+      let B2_quadratic = parseFloat(document.getElementById("B2_quadratic_num").value);
       
       // Create an array of x values for plotting the fitted lines.
-      // This generates 100 evenly spaced points: 0, 20, 40, …, 1980.
+      // Generates 100 evenly spaced points: 0, 20, 40, …, 1980.
       let xFit = Array.from({ length: 100 }, (_, i) => i * 20);
       
-      // Calculate y values for the linear fit using the equation:
-      // y = B0_linear + B1_linear * x.
+      // Calculate y values for the linear fit using the model: y = B0_linear + B1_linear * x.
       let yLinear = xFit.map(x => B0_linear + B1_linear * x);
-      // Calculate y values for the quadratic fit using the equation:
-      // y = B0_quadratic + B1_quadratic * x + B2_quadratic * x^2.
+      // Calculate y values for the quadratic fit using the model: y = B0_quadratic + B1_quadratic * x + B2_quadratic * x^2.
       let yQuadratic = xFit.map(x => B0_quadratic + B1_quadratic * x + B2_quadratic * Math.pow(x, 2));
       
       // ----------------- Create vertical dotted lines (error lines) for the linear model -----------------
@@ -263,14 +261,14 @@
         },
         yaxis: {
           title: "Revenue",            // Y-axis label.
-          range: [yMin, yMax],         // Set the y-axis range with additional padding.
+          range: [yMin, yMax],         // Set y-axis range with extra padding.
           showgrid: false,             // Remove grid lines.
           spikemode: 'toaxis',
           spikesnap: 'cursor',
           spikecolor: 'black',
           spikethickness: 1
         },
-        hovermode: 'closest'           // Only show hover details when the pointer is directly over a data point.
+        hovermode: 'closest'           // Only show hover details when directly over a data point.
       };
       
       // ----------------- Plotting the Linear Model -----------------
@@ -282,7 +280,7 @@
       ], { 
         ...commonLayout, 
         title: 'Linear Fit',
-        // Add vertical dotted lines (shapes) to illustrate the error for each data point.
+        // Add vertical dotted error lines.
         shapes: linearShapes
       });
       
