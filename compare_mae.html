@@ -5,8 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <!-- Title of the page -->
-  <title>Interactive MAE Visualization</title>
+  <!-- Title of the page (used in browser tab) -->
+  <title>Search Ads & Revenue: Calibrate Your Response Model!</title>
   
   <!-- Include Plotly.js library for interactive plotting -->
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -16,9 +16,25 @@
     /* Use a modern, professional sans-serif font for all visible text */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 20px;
     }
     
-    /* Styling for equation and MAE text display */
+    /* Styling for introductory text */
+    .intro {
+      margin-bottom: 30px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+    }
+    
+    /* Styling for equation display in the introduction */
+    .intro .equation {
+      font-size: 16px;
+      font-weight: normal;
+      margin: 5px 0;
+    }
+    
+    /* Styling for the main interactive equations and MAE displays */
     .equation {
       text-align: center;
       font-size: 18px;
@@ -62,16 +78,51 @@
       border-radius: 50%;
       cursor: pointer;
     }
+    
+    /* Styling for the instructions and exploratory questions */
+    #instructions, #questions {
+      margin: 20px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      background-color: #eef;
+    }
+    
+    #questions ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
   </style>
 </head>
 <body>
-  <!-- Main heading for the visualization page -->
-  <h2>Linear and Quadratic Fit with MAE Calculation</h2>
+  <!-- Fun and Engaging Title -->
+  <h1>Search Ads & Revenue: Calibrate Your Response Model!</h1>
+  
+  <!-- Introductory Text Section -->
+  <div class="intro">
+    <p>
+      <strong>Context:</strong> This interactive tool is designed for Marketing Undergraduates taking an Analytics course. 
+      You are learning about loss functions—in this case, the Mean Absolute Error (MAE)—to calibrate the parameters of a Response Model.
+    </p>
+    <p>
+      <strong>Scenario:</strong> Imagine you have run 30 different Search Ad campaigns last month and recorded the revenue generated from converting those ads. 
+      Each blue dot on the chart represents one Search Ad campaign. We want to build a simple mathematical relationship between Search Ad Spending and Revenue.
+      We are comparing a <em>linear</em> model versus a <em>quadratic</em> model, and we will use the Mean Absolute Error to help determine the best fit.
+    </p>
+    <p class="equation">
+      MAE = (1/N) Σ |y<sub>i</sub> − ŷ<sub>i</sub>|
+    </p>
+    <p class="equation">
+      Linear Model: REVENUE = B<sub>0</sub> + B<sub>1</sub> * Search_Ad_Spending
+    </p>
+    <p class="equation">
+      Quadratic Model: REVENUE = B<sub>0</sub> + B<sub>1</sub> * Search_Ad_Spending + B<sub>2</sub> * (Search_Ad_Spending)<sup>2</sup>
+    </p>
+  </div>
   
   <!-- ===================== Linear Model Controls ===================== -->
   <h3>Linear Model Controls</h3>
   <div class="control-group">
-    <!-- Control for the B0 parameter in the linear model -->
+    <!-- B0 control for the linear model -->
     <label>
       B0:
       <!-- Slider: uses a coarse step of 10 -->
@@ -81,7 +132,7 @@
       <!-- Display for the current B0 value -->
       <span id="B0_linear_value">20</span>
     </label>
-    <!-- Control for the B1 parameter in the linear model -->
+    <!-- B1 control for the linear model -->
     <label>
       B1:
       <!-- Slider: uses a coarse step of 0.1 -->
@@ -93,34 +144,43 @@
     </label>
   </div>
   
-  <!-- Display areas for the linear model equation and its MAE -->
+  <!-- Instruction Tutorial Before the Charts -->
+  <div id="instructions">
+    <p><strong>How to Use This Tool:</strong></p>
+    <ul>
+      <li>Use the slider bars to adjust the model parameters (B0, B1, and for quadratic, B2) in coarse steps.</li>
+      <li>For greater precision, type a specific value in the text box next to each slider. That precise value will be used in calculations.</li>
+      <li>The charts update in real time. Blue dots represent the actual data from 30 Search Ad campaigns.</li>
+      <li>The red dotted lines represent the fitted models (linear and quadratic), and the Mean Absolute Error (MAE) is shown below each equation.</li>
+    </ul>
+  </div>
+  
+  <!-- Container for the Linear Model Chart -->
   <p id="equation_linear" class="equation"></p>
   <p id="mae_linear" class="equation"></p>
-  <!-- Container where the linear model chart will be rendered -->
   <div id="linearPlot"></div>
   
-  <!-- ===================== Separator ===================== -->
-  <!-- A horizontal black line to separate the two charts -->
+  <!-- Horizontal Separator Between the Two Charts -->
   <hr style="border: 1px solid black;">
   
   <!-- ===================== Quadratic Model Controls ===================== -->
   <h3>Quadratic Model Controls</h3>
   <div class="control-group">
-    <!-- Control for the B0 parameter in the quadratic model -->
+    <!-- B0 control for the quadratic model -->
     <label>
       B0:
       <input type="range" id="B0_quadratic" min="-100" max="400" step="10" value="20" oninput="syncValue('B0_quadratic','slider')" />
       <input type="number" id="B0_quadratic_num" min="-100" max="400" step="0.1" value="20" oninput="syncValue('B0_quadratic','number')" />
       <span id="B0_quadratic_value">20</span>
     </label>
-    <!-- Control for the B1 parameter in the quadratic model -->
+    <!-- B1 control for the quadratic model -->
     <label>
       B1:
       <input type="range" id="B1_quadratic" min="-0.1" max="1.1" step="0.1" value="0.5" oninput="syncValue('B1_quadratic','slider')" />
       <input type="number" id="B1_quadratic_num" min="-0.1" max="1.1" step="0.01" value="0.5" oninput="syncValue('B1_quadratic','number')" />
       <span id="B1_quadratic_value">0.5</span>
     </label>
-    <!-- Control for the B2 parameter in the quadratic model -->
+    <!-- B2 control for the quadratic model -->
     <label>
       B2:
       <input type="range" id="B2_quadratic" min="-0.0005" max="0.0005" step="0.00005" value="0.0001" oninput="syncValue('B2_quadratic','slider')" />
@@ -129,11 +189,21 @@
     </label>
   </div>
   
-  <!-- Display areas for the quadratic model equation and its MAE -->
+  <!-- Container for the Quadratic Model Chart -->
   <p id="equation_quadratic" class="equation"></p>
   <p id="mae_quadratic" class="equation"></p>
-  <!-- Container where the quadratic model chart will be rendered -->
   <div id="quadraticPlot"></div>
+  
+  <!-- Exploratory Questions for Deeper Reflection -->
+  <div id="questions">
+    <h3>Exploratory Questions</h3>
+    <ol>
+      <li>How does adjusting the parameter values (B0, B1, B2) affect the model's fit to the actual data?</li>
+      <li>Which model (linear or quadratic) yields a lower MAE, and what might that suggest about the underlying relationship?</li>
+      <li>What are some limitations of using only Search Ad Spending to predict Revenue?  That is, is it sensible to think ad spending alone accounts for differences in Ad performance?</li>
+      <li>MAE is a commonly used "loss function" to calibrate a model, but it is not the most common.  MSE (Mean SQUARED Error) is more common.  What might be different about the two?</li>
+    </ol>
+  </div>
   
   <!-- ===================== JavaScript Section ===================== -->
   <script>
@@ -141,10 +211,9 @@
     // FUNCTION: syncValue
     // ================================================================
     // Synchronizes the slider and number input values for each parameter.
-    // The number input is the "master" value used for calculations.
-    // 'prefix' is the identifier for the parameter (e.g., "B1_linear").
-    // 'source' indicates whether the update came from the slider ("slider")
-    // or the number input ("number").
+    // The number input acts as the "master" value for calculations.
+    // 'prefix' is the identifier (e.g., "B1_linear"), and 'source' indicates
+    // whether the update came from the slider ("slider") or the number input ("number").
     function syncValue(prefix, source) {
       const slider = document.getElementById(prefix);
       const number = document.getElementById(prefix + "_num");
@@ -163,9 +232,9 @@
     // ================================================================
     // FUNCTION: loadCSVData
     // ================================================================
-    // Loads data from a CSV file ("data.csv") located in the same repository.
-    // The CSV file is expected to have a header row (e.g., "x,y") followed by 30 rows.
-    // The function parses the CSV into two arrays and calls the provided callback.
+    // Loads data from "data.csv" (assumed to be in the same repository).
+    // The CSV should have a header row ("x,y") followed by 30 rows of data.
+    // The function parses the CSV into two arrays and calls the callback.
     function loadCSVData(callback) {
       fetch('data.csv')
         .then(response => response.text())
@@ -190,16 +259,15 @@
     }
     
     // ================================================================
-    // NOTES: Original Data Generation Code
+    // NOTES: Original Data Generation Code (for reference)
     // ================================================================
     /*
-    // The original code randomly generated 30 data points using the process below.
     // function generateData() {
     //   let x = [];
     //   let y = [];
     //   for (let i = 0; i < 30; i++) {
     //     let x_val = Math.random() * 2000;
-    //     let noise = (Math.random() - 0.5) * 200;
+    //     let noise = (Math.random() - 0.5) * 200; // Noise between -100 and +100
     //     let y_val = 100 + 0.75 * x_val - 0.0002 * Math.pow(x_val, 2) + noise;
     //     x.push(x_val);
     //     y.push(y_val);
@@ -208,7 +276,7 @@
     // }
     */
     
-    // Global variable to store loaded data.
+    // Global variable to store the loaded data.
     let data;
     // Set initial y-axis range (will be updated after data is loaded).
     let yMin = 0, yMax = 0;
@@ -218,12 +286,11 @@
     // ================================================================
     // Reads parameter values from the number inputs (honoring any extra precision),
     // updates the displayed equations and MAE values,
-    // calculates the fitted lines for the linear and quadratic models,
+    // calculates the fitted lines for both linear and quadratic models,
     // draws thin, grey, dotted vertical error lines from each data point to its fitted value,
     // and renders the updated plots using Plotly.
     function updatePlot() {
-      // If data hasn't loaded yet, exit.
-      if (!data) return;
+      if (!data) return; // Ensure data is loaded
       
       // Retrieve current values for the linear model from the number inputs.
       let B0_linear = parseFloat(document.getElementById("B0_linear_num").value);
@@ -234,12 +301,12 @@
       let B1_quadratic = parseFloat(document.getElementById("B1_quadratic_num").value);
       let B2_quadratic = parseFloat(document.getElementById("B2_quadratic_num").value);
       
-      // Create an array of x values for plotting the fitted lines (100 evenly spaced points).
+      // Create an array of x values for plotting fitted lines (100 evenly spaced points).
       let xFit = Array.from({ length: 100 }, (_, i) => i * 20);
       
       // Calculate y values for the linear fit: y = B0_linear + B1_linear * x.
       let yLinear = xFit.map(x => B0_linear + B1_linear * x);
-      // Calculate y values for the quadratic fit: y = B0_quadratic + B1_quadratic * x + B2_quadratic * x².
+      // Calculate y values for the quadratic fit: y = B0_quadratic + B1_quadratic * x + B2_quadratic * x^2.
       let yQuadratic = xFit.map(x => B0_quadratic + B1_quadratic * x + B2_quadratic * Math.pow(x, 2));
       
       // ----------------- Vertical Dotted Error Lines for Linear Model -----------------
@@ -302,7 +369,7 @@
         shapes: linearShapes
       });
       
-      // Update the linear model equation display (B0 with 1 decimal, B1 with 2 decimals).
+      // Update the linear model equation display (B0: 1 decimal, B1: 2 decimals).
       document.getElementById("equation_linear").innerHTML =
         `REVENUE = ${B0_linear.toFixed(1)} + ${B1_linear.toFixed(2)} * Search_AdSpending`;
       
@@ -329,10 +396,10 @@
       document.getElementById("mae_quadratic").textContent = "Mean Absolute Error (MAE) = " + maeQuadratic.toFixed(3);
     }
     
-    // Load the CSV data from "data.csv" and then update the plots.
+    // Load the CSV data from "data.csv" and update the plots.
     loadCSVData(function(loadedData) {
       data = loadedData;
-      // Update the y-axis range based on the loaded data.
+      // Update y-axis range based on the loaded data.
       yMin = Math.min(...data.y) - 10;
       yMax = Math.max(...data.y) + 10;
       updatePlot();
