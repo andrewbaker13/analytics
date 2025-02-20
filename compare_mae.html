@@ -45,7 +45,7 @@
     }
     
     /* Customize the slider thumb to be red.
-       Note: This styling is supported by Webkit and Mozilla browsers; others may vary. */
+       Note: Supported in Webkit and Mozilla browsers; others may vary. */
     input[type="range"]::-webkit-slider-thumb {
       background: red;
       border: none;
@@ -140,15 +140,13 @@
     // ================================================================
     // FUNCTION: syncValue
     // ================================================================
-    // This function synchronizes the slider and number input values for a parameter.
-    // The number input is considered the "master" value for calculations.
-    // 'prefix' is the identifier for the parameter (e.g., "B0_linear").
-    // 'source' indicates whether the update was triggered by the slider ("slider")
+    // Synchronizes the slider and number input values for each parameter.
+    // The number input is the "master" value used for calculations.
+    // 'prefix' is the identifier for the parameter (e.g., "B1_linear").
+    // 'source' indicates whether the update came from the slider ("slider")
     // or the number input ("number").
     function syncValue(prefix, source) {
-      // Get the slider element.
       const slider = document.getElementById(prefix);
-      // Get the corresponding number input element (with "_num" appended).
       const number = document.getElementById(prefix + "_num");
       
       if (source === "slider") {
@@ -156,48 +154,77 @@
         number.value = slider.value;
         document.getElementById(prefix + "_value").textContent = slider.value;
       } else {
-        // When a user types in a precise value, display that value.
+        // When a user types a precise value, use that value.
         document.getElementById(prefix + "_value").textContent = number.value;
       }
-      // Update the plots using the master (number input) values.
       updatePlot();
     }
     
     // ================================================================
-    // FUNCTION: generateData
+    // FUNCTION: loadCSVData
     // ================================================================
-    // Generates a simulated dataset of 30 random data points.
-    // Returns an object containing two arrays: 'x' (independent variable) and 'y' (dependent variable).
-    function generateData() {
-      let x = [];
-      let y = [];
-      for (let i = 0; i < 30; i++) {
-        // Generate a random x value between 0 and 2000.
-        let x_val = Math.random() * 2000;
-        // Add random noise to simulate variability.
-        let noise = (Math.random() - 0.5) * 200;
-        // Calculate y using a quadratic relationship plus noise.
-        let y_val = 100 + 0.75 * x_val - 0.0002 * Math.pow(x_val, 2) + noise;
-        x.push(x_val);
-        y.push(y_val);
-      }
-      return { x, y };
+    // Loads data from a CSV file ("data.csv") located in the same repository.
+    // The CSV file is expected to have a header row (e.g., "x,y") followed by 30 rows.
+    // The function parses the CSV into two arrays and calls the provided callback.
+    function loadCSVData(callback) {
+      fetch('data.csv')
+        .then(response => response.text())
+        .then(text => {
+          let x = [];
+          let y = [];
+          let lines = text.split("\n").filter(line => line.trim() !== "");
+          // Remove header if it contains non-numeric characters.
+          if (lines[0].toLowerCase().includes("x")) {
+            lines.shift();
+          }
+          lines.forEach(line => {
+            let parts = line.split(",");
+            if (parts.length >= 2) {
+              x.push(parseFloat(parts[0]));
+              y.push(parseFloat(parts[1]));
+            }
+          });
+          callback({ x, y });
+        })
+        .catch(error => console.error("Error loading CSV data:", error));
     }
     
-    // Generate the dataset once when the page loads.
-    let data = generateData();
-    // Set the y-axis range: 10 units below the minimum to 10 units above the maximum.
-    let yMin = Math.min(...data.y) - 10;
-    let yMax = Math.max(...data.y) + 10;
+    // ================================================================
+    // NOTES: Original Data Generation Code
+    // ================================================================
+    /*
+    // The original code randomly generated 30 data points using the process below.
+    // function generateData() {
+    //   let x = [];
+    //   let y = [];
+    //   for (let i = 0; i < 30; i++) {
+    //     let x_val = Math.random() * 2000;
+    //     let noise = (Math.random() - 0.5) * 200;
+    //     let y_val = 100 + 0.75 * x_val - 0.0002 * Math.pow(x_val, 2) + noise;
+    //     x.push(x_val);
+    //     y.push(y_val);
+    //   }
+    //   return { x, y };
+    // }
+    */
+    
+    // Global variable to store loaded data.
+    let data;
+    // Set initial y-axis range (will be updated after data is loaded).
+    let yMin = 0, yMax = 0;
     
     // ================================================================
     // FUNCTION: updatePlot
     // ================================================================
-    // Retrieves parameter values from the number inputs (honoring any extra precision typed by the user),
-    // updates the equations and Mean Absolute Error (MAE) displays,
-    // calculates the fitted lines, and renders the updated plots.
-    // Also draws thin, grey, dotted vertical lines from each data point to its corresponding fitted value.
+    // Reads parameter values from the number inputs (honoring any extra precision),
+    // updates the displayed equations and MAE values,
+    // calculates the fitted lines for the linear and quadratic models,
+    // draws thin, grey, dotted vertical error lines from each data point to its fitted value,
+    // and renders the updated plots using Plotly.
     function updatePlot() {
+      // If data hasn't loaded yet, exit.
+      if (!data) return;
+      
       // Retrieve current values for the linear model from the number inputs.
       let B0_linear = parseFloat(document.getElementById("B0_linear_num").value);
       let B1_linear = parseFloat(document.getElementById("B1_linear_num").value);
@@ -207,17 +234,15 @@
       let B1_quadratic = parseFloat(document.getElementById("B1_quadratic_num").value);
       let B2_quadratic = parseFloat(document.getElementById("B2_quadratic_num").value);
       
-      // Create an array of x values for plotting the fitted lines.
-      // This generates 100 evenly spaced points (0, 20, 40, …, 1980).
+      // Create an array of x values for plotting the fitted lines (100 evenly spaced points).
       let xFit = Array.from({ length: 100 }, (_, i) => i * 20);
       
       // Calculate y values for the linear fit: y = B0_linear + B1_linear * x.
       let yLinear = xFit.map(x => B0_linear + B1_linear * x);
-      // Calculate y values for the quadratic fit: y = B0_quadratic + B1_quadratic * x + B2_quadratic * x^2.
+      // Calculate y values for the quadratic fit: y = B0_quadratic + B1_quadratic * x + B2_quadratic * x².
       let yQuadratic = xFit.map(x => B0_quadratic + B1_quadratic * x + B2_quadratic * Math.pow(x, 2));
       
-      // ----------------- Create vertical dotted error lines for the linear model -----------------
-      // For each data point, draw a thin, grey, vertical dotted line from the actual y value to the predicted y value.
+      // ----------------- Vertical Dotted Error Lines for Linear Model -----------------
       let linearShapes = [];
       for (let i = 0; i < data.x.length; i++) {
         let predictedY = B0_linear + B1_linear * data.x[i];
@@ -231,7 +256,7 @@
         });
       }
       
-      // ----------------- Create vertical dotted error lines for the quadratic model -----------------
+      // ----------------- Vertical Dotted Error Lines for Quadratic Model -----------------
       let quadraticShapes = [];
       for (let i = 0; i < data.x.length; i++) {
         let predictedY = B0_quadratic + B1_quadratic * data.x[i] + B2_quadratic * Math.pow(data.x[i], 2);
@@ -245,57 +270,49 @@
         });
       }
       
-      // ----------------- Define common layout settings for both plots -----------------
-      // The layout includes axis titles, no grid lines, and spike line settings.
+      // Define common layout settings for both plots.
       let commonLayout = {
         xaxis: {
-          title: "Search Ad Spending", // X-axis label.
-          showgrid: false,             // Remove grid lines.
-          spikemode: 'toaxis',         // Enable spike lines to extend to the axis.
-          spikesnap: 'cursor',         // Spike lines snap to the cursor.
-          spikecolor: 'black',         // Color of the spike lines.
-          spikethickness: 1            // Thickness of the spike lines.
-        },
-        yaxis: {
-          title: "Revenue",            // Y-axis label.
-          range: [yMin, yMax],         // Y-axis range with extra padding.
-          showgrid: false,             // Remove grid lines.
+          title: "Search Ad Spending",
+          showgrid: false,
           spikemode: 'toaxis',
           spikesnap: 'cursor',
           spikecolor: 'black',
           spikethickness: 1
         },
-        hovermode: 'closest'           // Only show hover details when directly over a data point.
+        yaxis: {
+          title: "Revenue",
+          range: [yMin, yMax],
+          showgrid: false,
+          spikemode: 'toaxis',
+          spikesnap: 'cursor',
+          spikecolor: 'black',
+          spikethickness: 1
+        },
+        hovermode: 'closest'
       };
       
       // ----------------- Plotting the Linear Model -----------------
       Plotly.newPlot('linearPlot', [
-        // Plot actual data points (blue markers).
         { x: data.x, y: data.y, mode: 'markers', type: 'scatter', name: 'Actual Data', marker: { color: 'blue' } },
-        // Plot the linear fitted line as a dotted red line.
         { x: xFit, y: yLinear, mode: 'lines', type: 'scatter', name: 'Linear Fit', line: { color: 'red', dash: 'dot' } }
       ], { 
         ...commonLayout, 
         title: 'Linear Fit',
-        // Add vertical dotted error lines.
         shapes: linearShapes
       });
       
-      // Update the linear model equation display using the precise values.
-      // B0 is shown with 1 decimal precision; B1 is shown with 2 decimals.
+      // Update the linear model equation display (B0 with 1 decimal, B1 with 2 decimals).
       document.getElementById("equation_linear").innerHTML =
-        `REVENUE = ${B0_linear.toFixed(1)} + ${B1_linear.toFixed(2)} * Search_Ad_Spending`;
+        `REVENUE = ${B0_linear.toFixed(1)} + ${B1_linear.toFixed(2)} * Search_AdSpending`;
       
-      // Calculate the Mean Absolute Error (MAE) for the linear model.
+      // Calculate and display the MAE for the linear model.
       let maeLinear = data.x.reduce((sum, x, i) => sum + Math.abs(data.y[i] - (B0_linear + B1_linear * x)), 0) / data.x.length;
-      // Display the MAE for the linear model.
       document.getElementById("mae_linear").textContent = "Mean Absolute Error (MAE) = " + maeLinear.toFixed(3);
       
       // ----------------- Plotting the Quadratic Model -----------------
       Plotly.newPlot('quadraticPlot', [
-        // Plot actual data points (blue markers).
         { x: data.x, y: data.y, mode: 'markers', type: 'scatter', name: 'Actual Data', marker: { color: 'blue' } },
-        // Plot the quadratic fitted line as a dotted red line.
         { x: xFit, y: yQuadratic, mode: 'lines', type: 'scatter', name: 'Quadratic Fit', line: { color: 'red', dash: 'dot' } }
       ], { 
         ...commonLayout, 
@@ -303,19 +320,23 @@
         shapes: quadraticShapes
       });
       
-      // Update the quadratic model equation display.
-      // B0 is shown with 1 decimal, B1 with 2 decimals, and B2 with 6 decimals.
+      // Update the quadratic model equation display (B0: 1 decimal, B1: 2 decimals, B2: 6 decimals).
       document.getElementById("equation_quadratic").innerHTML =
         `REVENUE = ${B0_quadratic.toFixed(1)} + ${B1_quadratic.toFixed(2)} * Search_AdSpending + ${B2_quadratic.toFixed(6)} * Search_AdSpending²`;
       
-      // Calculate the MAE for the quadratic model.
+      // Calculate and display the MAE for the quadratic model.
       let maeQuadratic = data.x.reduce((sum, x, i) => sum + Math.abs(data.y[i] - (B0_quadratic + B1_quadratic * x + B2_quadratic * Math.pow(x, 2))), 0) / data.x.length;
-      // Display the MAE for the quadratic model.
       document.getElementById("mae_quadratic").textContent = "Mean Absolute Error (MAE) = " + maeQuadratic.toFixed(3);
     }
     
-    // Initialize the plots when the page loads.
-    updatePlot();
+    // Load the CSV data from "data.csv" and then update the plots.
+    loadCSVData(function(loadedData) {
+      data = loadedData;
+      // Update the y-axis range based on the loaded data.
+      yMin = Math.min(...data.y) - 10;
+      yMax = Math.max(...data.y) + 10;
+      updatePlot();
+    });
   </script>
 </body>
 </html>
