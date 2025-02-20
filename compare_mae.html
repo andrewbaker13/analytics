@@ -1,160 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Set the character encoding and viewport for responsive design -->
+  <!-- Set character encoding and responsive viewport settings -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <!-- The title of the page that appears in the browser tab -->
+  <!-- Title of the page -->
   <title>Interactive MAE Visualization</title>
   
-  <!-- Include Plotly.js library from a CDN for creating interactive plots -->
+  <!-- Include the Plotly.js library for interactive charts -->
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   
-  <!-- CSS styles for the page -->
+  <!-- CSS styling -->
   <style>
-    /* Style for equation and MAE display */
+    /* Set a modern, professional font for the page */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    /* Styling for the equation and MAE display text */
     .equation {
       text-align: center;
       font-size: 18px;
       font-weight: bold;
       margin-bottom: 10px;
     }
-    /* Grouping controls together with some spacing */
+    
+    /* Group controls with some spacing */
     .control-group {
       margin-bottom: 10px;
     }
-    /* Each label in a control group is displayed as a block element */
+    
+    /* Each label in the control group takes full width */
     .control-group label {
       display: block;
       margin-bottom: 5px;
     }
-    /* Style for range and number inputs to line them up nicely */
+    
+    /* Style for slider and number input to align nicely */
     .control-group input[type="range"],
     .control-group input[type="number"] {
       vertical-align: middle;
       margin-right: 10px;
     }
+    
+    /* Custom styling for the slider thumb to appear red.
+       Note: These pseudo-elements are supported in Webkit-based browsers.
+       Other browsers may require additional vendor prefixes. */
+    input[type="range"]::-webkit-slider-thumb {
+      background: red;
+      border: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      background: red;
+      border: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <!-- Main heading for the visualization page -->
+  <!-- Main heading -->
   <h2>Linear and Quadratic Fit with MAE Calculation</h2>
   
-  <!-- Linear Model Controls Section -->
+  <!-- ===================== Linear Model Controls ===================== -->
   <h3>Linear Model Controls</h3>
   <div class="control-group">
-    <!-- Control for B0 parameter in the linear model -->
+    <!-- B0 control for the linear model -->
     <label>
       B0:
-      <!-- Slider input for B0 -->
+      <!-- Slider for B0 -->
       <input type="range" id="B0_linear" min="-100" max="400" step="10" value="20" oninput="syncValue('B0_linear','slider')" />
-      <!-- Number input for B0 (allows precise value entry) -->
+      <!-- Number input for B0 for precise entry -->
       <input type="number" id="B0_linear_num" min="-100" max="400" step="10" value="20" oninput="syncValue('B0_linear','number')" />
-      <!-- Span element to display the current value of B0 -->
+      <!-- Display current B0 value -->
       <span id="B0_linear_value">20</span>
     </label>
-    <!-- Control for B1 parameter in the linear model -->
+    <!-- B1 control for the linear model -->
     <label>
       B1:
-      <!-- Slider input for B1 -->
       <input type="range" id="B1_linear" min="-0.1" max="1.1" step="0.1" value="0.5" oninput="syncValue('B1_linear','slider')" />
-      <!-- Number input for B1 -->
       <input type="number" id="B1_linear_num" min="-0.1" max="1.1" step="0.1" value="0.5" oninput="syncValue('B1_linear','number')" />
-      <!-- Span element to display the current value of B1 -->
       <span id="B1_linear_value">0.5</span>
     </label>
   </div>
   
-  <!-- Display area for the linear model equation and its MAE -->
+  <!-- Display for the linear equation and MAE -->
   <p id="equation_linear" class="equation"></p>
   <p id="mae_linear" class="equation"></p>
   <!-- Container for the linear model plot -->
   <div id="linearPlot"></div>
   
-  <!-- Quadratic Model Controls Section -->
+  <!-- ===================== Separator ===================== -->
+  <!-- A black horizontal line to separate the two charts -->
+  <hr style="border: 1px solid black;">
+  
+  <!-- ===================== Quadratic Model Controls ===================== -->
   <h3>Quadratic Model Controls</h3>
   <div class="control-group">
-    <!-- Control for B0 parameter in the quadratic model -->
+    <!-- B0 control for the quadratic model -->
     <label>
       B0:
-      <!-- Slider input for B0 -->
       <input type="range" id="B0_quadratic" min="-100" max="400" step="10" value="20" oninput="syncValue('B0_quadratic','slider')" />
-      <!-- Number input for B0 -->
       <input type="number" id="B0_quadratic_num" min="-100" max="400" step="10" value="20" oninput="syncValue('B0_quadratic','number')" />
-      <!-- Span element to display the current value of B0 -->
       <span id="B0_quadratic_value">20</span>
     </label>
-    <!-- Control for B1 parameter in the quadratic model -->
+    <!-- B1 control for the quadratic model -->
     <label>
       B1:
-      <!-- Slider input for B1 -->
       <input type="range" id="B1_quadratic" min="-0.1" max="1.1" step="0.1" value="0.5" oninput="syncValue('B1_quadratic','slider')" />
-      <!-- Number input for B1 -->
       <input type="number" id="B1_quadratic_num" min="-0.1" max="1.1" step="0.1" value="0.5" oninput="syncValue('B1_quadratic','number')" />
-      <!-- Span element to display the current value of B1 -->
       <span id="B1_quadratic_value">0.5</span>
     </label>
-    <!-- Control for B2 parameter in the quadratic model -->
+    <!-- B2 control for the quadratic model -->
     <label>
       B2:
-      <!-- Slider input for B2 -->
       <input type="range" id="B2_quadratic" min="-0.0005" max="0.0005" step="0.00005" value="0.0001" oninput="syncValue('B2_quadratic','slider')" />
-      <!-- Number input for B2 -->
       <input type="number" id="B2_quadratic_num" min="-0.0005" max="0.0005" step="0.00005" value="0.0001" oninput="syncValue('B2_quadratic','number')" />
-      <!-- Span element to display the current value of B2 -->
       <span id="B2_quadratic_value">0.0001</span>
     </label>
   </div>
   
-  <!-- Display area for the quadratic model equation and its MAE -->
+  <!-- Display for the quadratic equation and MAE -->
   <p id="equation_quadratic" class="equation"></p>
   <p id="mae_quadratic" class="equation"></p>
   <!-- Container for the quadratic model plot -->
   <div id="quadraticPlot"></div>
   
-  <!-- JavaScript Section -->
+  <!-- ===================== JavaScript Section ===================== -->
   <script>
     // ================================================================
     // FUNCTION: syncValue
     // ================================================================
-    // This function synchronizes the slider and number input values for a given parameter.
-    // - 'prefix' is the base identifier (e.g., "B0_linear").
-    // - 'source' indicates if the update came from the slider ("slider") or the number input ("number").
+    // Synchronizes the slider and number input values for a given parameter.
+    // 'prefix' is the base identifier (e.g., "B0_linear").
+    // 'source' indicates if the update came from the slider ("slider") or the number input ("number").
     function syncValue(prefix, source) {
-      // Get the slider element by its id.
+      // Get slider and number input elements using the prefix.
       const slider = document.getElementById(prefix);
-      // Get the corresponding number input element (with _num appended to the id).
       const number = document.getElementById(prefix + "_num");
       
-      // Update the other input based on which one triggered the event.
+      // Update the other control based on which one triggered the event.
       if (source === "slider") {
         number.value = slider.value;
       } else {
         slider.value = number.value;
       }
-      
       // Update the display span with the current value.
       document.getElementById(prefix + "_value").textContent = slider.value;
       
-      // Redraw the plots with the new values.
+      // Redraw the plots with the new parameter values.
       updatePlot();
     }
     
     // ================================================================
     // FUNCTION: generateData
     // ================================================================
-    // This function generates a simulated dataset of 30 random data points.
-    // It returns an object containing two arrays: x (independent variable) and y (dependent variable).
+    // Generates a simulated dataset of 30 random data points.
+    // Returns an object with arrays 'x' (independent variable) and 'y' (dependent variable).
     function generateData() {
       let x = [];
       let y = [];
       for (let i = 0; i < 30; i++) {
         // Generate a random x value between 0 and 2000.
         let x_val = Math.random() * 2000;
-        // Create a noise value to simulate real-world variability.
+        // Create random noise to simulate real-world data variability.
         let noise = (Math.random() - 0.5) * 200;
-        // Calculate y using a quadratic relationship with noise.
+        // Calculate y using a quadratic relationship plus noise.
         let y_val = 100 + 0.75 * x_val - 0.0002 * Math.pow(x_val, 2) + noise;
         x.push(x_val);
         y.push(y_val);
@@ -164,18 +182,16 @@
     
     // Generate the dataset once when the page loads.
     let data = generateData();
-    // Calculate the y-axis minimum and maximum based on the data (with some padding).
-    let yMin = Math.min(...data.y) - 5;
-    let yMax = Math.max(...data.y) + 5;
+    // Adjust the y-axis range: 10 units below the minimum and 10 units above the maximum data value.
+    let yMin = Math.min(...data.y) - 10;
+    let yMax = Math.max(...data.y) + 10;
     
     // ================================================================
     // FUNCTION: updatePlot
     // ================================================================
-    // This function:
-    // - Reads the current parameter values.
-    // - Updates the equation and MAE displays.
-    // - Calculates the fitted lines for the linear and quadratic models.
-    // - Redraws the plots using Plotly.
+    // Reads the current parameter values, updates the equations and MAE displays,
+    // calculates the fitted lines, draws vertical error lines from each data point to the fitted line,
+    // and redraws the plots using Plotly.
     function updatePlot() {
       // Retrieve current values for the linear model parameters.
       let B0_linear = parseFloat(document.getElementById("B0_linear").value);
@@ -185,49 +201,85 @@
       let B0_quadratic = parseFloat(document.getElementById("B0_quadratic").value);
       let B1_quadratic = parseFloat(document.getElementById("B1_quadratic").value);
       let B2_quadratic = parseFloat(document.getElementById("B2_quadratic").value);
-    
+      
       // Create an array of x values for plotting the fitted lines.
-      // This creates 100 points evenly spaced (0, 20, 40, ..., 1980).
+      // This generates 100 points (0, 20, 40, …, 1980).
       let xFit = Array.from({ length: 100 }, (_, i) => i * 20);
       
-      // Calculate y values for the linear fit based on the equation: y = B0 + B1*x.
+      // Calculate y values for the linear fit using the model: y = B0_linear + B1_linear * x.
       let yLinear = xFit.map(x => B0_linear + B1_linear * x);
-      // Calculate y values for the quadratic fit based on the equation: y = B0 + B1*x + B2*x^2.
+      // Calculate y values for the quadratic fit using the model: y = B0_quadratic + B1_quadratic * x + B2_quadratic * x^2.
       let yQuadratic = xFit.map(x => B0_quadratic + B1_quadratic * x + B2_quadratic * Math.pow(x, 2));
       
-      // Define the layout for the plots, including axis labels, no grid lines, and spike line configuration.
-      let layout = {
+      // ----------------- Create vertical error lines for the linear model -----------------
+      // For each data point, draw a vertical dotted line from the actual y value (blue dot)
+      // to the corresponding predicted value on the linear fitted line.
+      let linearShapes = [];
+      for (let i = 0; i < data.x.length; i++) {
+        // Calculate the predicted y value for this data point.
+        let predictedY = B0_linear + B1_linear * data.x[i];
+        linearShapes.push({
+          type: 'line',
+          x0: data.x[i],
+          y0: data.y[i],
+          x1: data.x[i],
+          y1: predictedY,
+          line: { color: 'grey', dash: 'dot', width: 1 }
+        });
+      }
+      
+      // ----------------- Create vertical error lines for the quadratic model -----------------
+      let quadraticShapes = [];
+      for (let i = 0; i < data.x.length; i++) {
+        let predictedY = B0_quadratic + B1_quadratic * data.x[i] + B2_quadratic * Math.pow(data.x[i], 2);
+        quadraticShapes.push({
+          type: 'line',
+          x0: data.x[i],
+          y0: data.y[i],
+          x1: data.x[i],
+          y1: predictedY,
+          line: { color: 'grey', dash: 'dot', width: 1 }
+        });
+      }
+      
+      // ----------------- Define common layout settings for both plots -----------------
+      // This layout includes axis titles, no grid lines, and configurations for spike lines.
+      // Note: 'hovermode' is set to 'closest' so that spike lines only appear when hovering directly on a point.
+      let commonLayout = {
         xaxis: {
-          title: "Search Ad Spending", // Label for x-axis.
-          showgrid: false,             // Remove background grid lines.
-          spikemode: 'toaxis',         // Spike lines extend to the x-axis when hovered.
-          spikesnap: 'cursor',         // Spike lines snap to the cursor position.
-          spikecolor: 'black',         // Spike lines color.
-          spikethickness: 1            // Spike lines thickness.
+          title: "Search Ad Spending",  // X-axis label.
+          showgrid: false,              // Remove grid lines.
+          spikemode: 'toaxis',          // Enable spike lines to the axis.
+          spikesnap: 'cursor',          // Spike lines snap to the cursor.
+          spikecolor: 'black',          // Color of the spike lines.
+          spikethickness: 1             // Thickness of the spike lines.
         },
         yaxis: {
-          title: "Revenue",            // Label for y-axis.
-          range: [yMin, yMax],         // Set y-axis limits.
-          showgrid: false,             // Remove background grid lines.
-          spikemode: 'toaxis',         // Spike lines extend to the y-axis when hovered.
-          spikesnap: 'cursor',         // Spike lines snap to the cursor position.
-          spikecolor: 'black',         // Spike lines color.
-          spikethickness: 1            // Spike lines thickness.
+          title: "Revenue",             // Y-axis label.
+          range: [yMin, yMax],          // Set y-axis range with additional padding.
+          showgrid: false,              // Remove grid lines.
+          spikemode: 'toaxis',
+          spikesnap: 'cursor',
+          spikecolor: 'black',
+          spikethickness: 1
         },
-        hovermode: 'closest'           // Spike lines only appear when directly hovering over a point.
+        hovermode: 'closest'            // Only show hover information when directly over a data point.
       };
       
-      // -------------------------------
-      // Plotting the Linear Model
-      // -------------------------------
+      // ----------------- Plotting the Linear Model -----------------
       Plotly.newPlot('linearPlot', [
-        // Plot actual data points as blue markers.
+        // Actual data points (blue markers).
         { x: data.x, y: data.y, mode: 'markers', type: 'scatter', name: 'Actual Data', marker: { color: 'blue' } },
-        // Plot the linear fitted line in red.
-        { x: xFit, y: yLinear, mode: 'lines', type: 'scatter', name: 'Linear Fit', line: { color: 'red' } }
-      ], { ...layout, title: 'Linear Fit' });
+        // Linear fitted line (dotted red line).
+        { x: xFit, y: yLinear, mode: 'lines', type: 'scatter', name: 'Linear Fit', line: { color: 'red', dash: 'dot' } }
+      ], { 
+        ...commonLayout, 
+        title: 'Linear Fit',
+        // Add the vertical dotted lines as shapes.
+        shapes: linearShapes
+      });
       
-      // Update the displayed linear equation.
+      // Update the linear model equation display.
       document.getElementById("equation_linear").innerHTML =
         `REVENUE = ${B0_linear.toFixed(3)} + ${B1_linear.toFixed(3)} * Search_Ad_Spending`;
       
@@ -236,20 +288,23 @@
         return sum + Math.abs(data.y[i] - (B0_linear + B1_linear * x));
       }, 0) / data.x.length;
       
-      // Display the MAE for the linear model.
-      document.getElementById("mae_linear").textContent = "MAE (Linear): " + maeLinear.toFixed(3);
+      // Display the MAE for the linear model with the specified label.
+      document.getElementById("mae_linear").textContent = "Mean Absolute Error (MAE) = " + maeLinear.toFixed(3);
       
-      // -------------------------------
-      // Plotting the Quadratic Model
-      // -------------------------------
+      // ----------------- Plotting the Quadratic Model -----------------
       Plotly.newPlot('quadraticPlot', [
-        // Plot actual data points as blue markers.
+        // Actual data points (blue markers).
         { x: data.x, y: data.y, mode: 'markers', type: 'scatter', name: 'Actual Data', marker: { color: 'blue' } },
-        // Plot the quadratic fitted line in red.
-        { x: xFit, y: yQuadratic, mode: 'lines', type: 'scatter', name: 'Quadratic Fit', line: { color: 'red' } }
-      ], { ...layout, title: 'Quadratic Fit' });
+        // Quadratic fitted line (dotted red line).
+        { x: xFit, y: yQuadratic, mode: 'lines', type: 'scatter', name: 'Quadratic Fit', line: { color: 'red', dash: 'dot' } }
+      ], { 
+        ...commonLayout, 
+        title: 'Quadratic Fit',
+        // Add the vertical dotted lines for the quadratic model.
+        shapes: quadraticShapes
+      });
       
-      // Update the displayed quadratic equation.
+      // Update the quadratic model equation display.
       document.getElementById("equation_quadratic").innerHTML =
         `REVENUE = ${B0_quadratic.toFixed(3)} + ${B1_quadratic.toFixed(3)} * Search_Ad_Spending + ${B2_quadratic.toFixed(4)} * Search_Ad_Spending²`;
       
@@ -259,10 +314,10 @@
       }, 0) / data.x.length;
       
       // Display the MAE for the quadratic model.
-      document.getElementById("mae_quadratic").textContent = "MAE (Quadratic): " + maeQuadratic.toFixed(3);
+      document.getElementById("mae_quadratic").textContent = "Mean Absolute Error (MAE) = " + maeQuadratic.toFixed(3);
     }
     
-    // Call updatePlot when the page loads to initialize the charts.
+    // Initialize the plots when the page loads.
     updatePlot();
   </script>
 </body>
