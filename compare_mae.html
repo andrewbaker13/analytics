@@ -27,18 +27,18 @@
       background-color: #f9f9f9;
     }
     
-    /* Styling for equation display in the introduction */
+    /* Styling for equations within the introduction */
     .intro .equation {
       font-size: 16px;
       font-weight: normal;
       margin: 5px 0;
     }
     
-    /* Styling for the main interactive equations and MAE displays */
-    .equation {
-      text-align: center;
-      font-size: 18px;
+    /* New class for model equations and MAE displays */
+    .model-equation {
+      text-align: left;
       font-weight: bold;
+      margin-left: 20px;
       margin-bottom: 10px;
     }
     
@@ -87,7 +87,7 @@
       background-color: #eef;
     }
     
-    #questions ul {
+    #questions ul, #questions ol {
       margin: 10px 0;
       padding-left: 20px;
     }
@@ -100,29 +100,43 @@
   <!-- Introductory Text Section -->
   <div class="intro">
     <p>
-      <strong>Context:</strong> This interactive tool is designed for Marketing Undergraduates taking an Analytics course. 
+      <strong>Context:</strong> This interactive tool is designed for Marketing Undergraduates taking an Analytics course.
       You are learning about loss functions—in this case, the Mean Absolute Error (MAE)—to calibrate the parameters of a Response Model.
     </p>
     <p>
-      <strong>Scenario:</strong> Imagine you have run 30 different Search Ad campaigns last month and recorded the revenue generated from converting those ads. 
+      <strong>Scenario:</strong> Imagine you have run 30 different Search Ad campaigns last month and recorded the revenue generated from converting those ads.
       Each blue dot on the chart represents one Search Ad campaign. We want to build a simple mathematical relationship between Search Ad Spending and Revenue.
       We are comparing a <em>linear</em> model versus a <em>quadratic</em> model, and we will use the Mean Absolute Error to help determine the best fit.
     </p>
     <p class="equation">
-      MAE = (1/N) Σ |y<sub>i</sub> − ŷ<sub>i</sub>|
+      <strong>Mean Absolute Error (MAE):</strong> (1/N) Σ |Actual_REVENUE<sub>i</sub> − Predicted_REVENUE<sub>i</sub>|
     </p>
     <p class="equation">
-      Linear Model: REVENUE = B<sub>0</sub> + B<sub>1</sub> * Search_Ad_Spending
+      <strong>Linear Model:</strong> ŷ = B<sub>0</sub> + B<sub>1</sub> * Search_Ad_Spending
     </p>
     <p class="equation">
-      Quadratic Model: REVENUE = B<sub>0</sub> + B<sub>1</sub> * Search_Ad_Spending + B<sub>2</sub> * (Search_Ad_Spending)<sup>2</sup>
+      <strong>Quadratic Model:</strong> ŷ = B<sub>0</sub> + B<sub>1</sub> * Search_Ad_Spending + B<sub>2</sub> * (Search_Ad_Spending)<sup>2</sup>
     </p>
+    <p>
+      <em>Plain Language Definition:</em> Mean Absolute Error is the average of the absolute differences between the observed revenues and the revenues predicted by our model. It tells us, on average, how far off our predictions are.
+    </p>
+  </div>
+  
+  <!-- How to Use This Tool - Instructions moved above the controls -->
+  <div id="instructions">
+    <p><strong>How to Use This Tool:</strong></p>
+    <ul>
+      <li>Adjust the model parameters (B0, B1, and for quadratic, B2) using the slider bars for coarse changes.</li>
+      <li>For greater precision, type a specific value in the text box next to each slider. The value you type will be used for calculations.</li>
+      <li>The grey vertical dotted lines on the charts represent the absolute error—the difference between the predicted revenue for that search ad and the actual revenue.</li>
+      <li>The charts update in real time: blue dots show actual data from 30 Search Ad campaigns, and red dotted lines show the fitted model.</li>
+    </ul>
   </div>
   
   <!-- ===================== Linear Model Controls ===================== -->
   <h3>Linear Model Controls</h3>
   <div class="control-group">
-    <!-- B0 control for the linear model -->
+    <!-- Control for the B0 parameter in the linear model -->
     <label>
       B0:
       <!-- Slider: uses a coarse step of 10 -->
@@ -132,7 +146,7 @@
       <!-- Display for the current B0 value -->
       <span id="B0_linear_value">20</span>
     </label>
-    <!-- B1 control for the linear model -->
+    <!-- Control for the B1 parameter in the linear model -->
     <label>
       B1:
       <!-- Slider: uses a coarse step of 0.1 -->
@@ -144,20 +158,9 @@
     </label>
   </div>
   
-  <!-- Instruction Tutorial Before the Charts -->
-  <div id="instructions">
-    <p><strong>How to Use This Tool:</strong></p>
-    <ul>
-      <li>Use the slider bars to adjust the model parameters (B0, B1, and for quadratic, B2) in coarse steps.</li>
-      <li>For greater precision, type a specific value in the text box next to each slider. That precise value will be used in calculations.</li>
-      <li>The charts update in real time. Blue dots represent the actual data from 30 Search Ad campaigns.</li>
-      <li>The red dotted lines represent the fitted models (linear and quadratic), and the Mean Absolute Error (MAE) is shown below each equation.</li>
-    </ul>
-  </div>
-  
-  <!-- Container for the Linear Model Chart -->
-  <p id="equation_linear" class="equation"></p>
-  <p id="mae_linear" class="equation"></p>
+  <!-- Containers for Linear Model Chart and Equations -->
+  <p id="equation_linear" class="model-equation"></p>
+  <p id="mae_linear" class="model-equation"></p>
   <div id="linearPlot"></div>
   
   <!-- Horizontal Separator Between the Two Charts -->
@@ -166,21 +169,21 @@
   <!-- ===================== Quadratic Model Controls ===================== -->
   <h3>Quadratic Model Controls</h3>
   <div class="control-group">
-    <!-- B0 control for the quadratic model -->
+    <!-- Control for the B0 parameter in the quadratic model -->
     <label>
       B0:
       <input type="range" id="B0_quadratic" min="-100" max="400" step="10" value="20" oninput="syncValue('B0_quadratic','slider')" />
       <input type="number" id="B0_quadratic_num" min="-100" max="400" step="0.1" value="20" oninput="syncValue('B0_quadratic','number')" />
       <span id="B0_quadratic_value">20</span>
     </label>
-    <!-- B1 control for the quadratic model -->
+    <!-- Control for the B1 parameter in the quadratic model -->
     <label>
       B1:
       <input type="range" id="B1_quadratic" min="-0.1" max="1.1" step="0.1" value="0.5" oninput="syncValue('B1_quadratic','slider')" />
       <input type="number" id="B1_quadratic_num" min="-0.1" max="1.1" step="0.01" value="0.5" oninput="syncValue('B1_quadratic','number')" />
       <span id="B1_quadratic_value">0.5</span>
     </label>
-    <!-- B2 control for the quadratic model -->
+    <!-- Control for the B2 parameter in the quadratic model -->
     <label>
       B2:
       <input type="range" id="B2_quadratic" min="-0.0005" max="0.0005" step="0.00005" value="0.0001" oninput="syncValue('B2_quadratic','slider')" />
@@ -189,19 +192,19 @@
     </label>
   </div>
   
-  <!-- Container for the Quadratic Model Chart -->
-  <p id="equation_quadratic" class="equation"></p>
-  <p id="mae_quadratic" class="equation"></p>
+  <!-- Containers for Quadratic Model Chart and Equations -->
+  <p id="equation_quadratic" class="model-equation"></p>
+  <p id="mae_quadratic" class="model-equation"></p>
   <div id="quadraticPlot"></div>
   
-  <!-- Exploratory Questions for Deeper Reflection -->
+  <!-- Exploratory Questions Section -->
   <div id="questions">
     <h3>Exploratory Questions</h3>
     <ol>
       <li>How does adjusting the parameter values (B0, B1, B2) affect the model's fit to the actual data?</li>
       <li>Which model (linear or quadratic) yields a lower MAE, and what might that suggest about the underlying relationship?</li>
-      <li>What are some limitations of using only Search Ad Spending to predict Revenue?  That is, is it sensible to think ad spending alone accounts for differences in Ad performance?</li>
-      <li>MAE is a commonly used "loss function" to calibrate a model, but it is not the most common.  MSE (Mean SQUARED Error) is more common.  What might be different about the two?</li>
+      <li>What are some limitations of using only Search Ad Spending to predict Revenue? In other words, is it sensible to think that ad spending alone accounts for differences in ad performance?</li>
+      <li>MAE is a commonly used "loss function" to calibrate a model, but it is not the most common. Mean Squared Error (MSE) is more common. What might be different about the two?</li>
     </ol>
   </div>
   
@@ -306,7 +309,7 @@
       
       // Calculate y values for the linear fit: y = B0_linear + B1_linear * x.
       let yLinear = xFit.map(x => B0_linear + B1_linear * x);
-      // Calculate y values for the quadratic fit: y = B0_quadratic + B1_quadratic * x + B2_quadratic * x^2.
+      // Calculate y values for the quadratic fit: y = B0_quadratic + B1_quadratic * x + B2_quadratic * x².
       let yQuadratic = xFit.map(x => B0_quadratic + B1_quadratic * x + B2_quadratic * Math.pow(x, 2));
       
       // ----------------- Vertical Dotted Error Lines for Linear Model -----------------
@@ -369,13 +372,14 @@
         shapes: linearShapes
       });
       
-      // Update the linear model equation display (B0: 1 decimal, B1: 2 decimals).
+      // Update the linear model equation display.
       document.getElementById("equation_linear").innerHTML =
-        `REVENUE = ${B0_linear.toFixed(1)} + ${B1_linear.toFixed(2)} * Search_AdSpending`;
+        "<strong>Linear Model:</strong> REVENUE = " + B0_linear.toFixed(1) + " + " + B1_linear.toFixed(2) + " * Search_AdSpending";
       
       // Calculate and display the MAE for the linear model.
       let maeLinear = data.x.reduce((sum, x, i) => sum + Math.abs(data.y[i] - (B0_linear + B1_linear * x)), 0) / data.x.length;
-      document.getElementById("mae_linear").textContent = "Mean Absolute Error (MAE) = " + maeLinear.toFixed(3);
+      document.getElementById("mae_linear").innerHTML =
+        "<strong>MAE:</strong> (1/N) Σ |Actual_REVENUE<sub>i</sub> − Predicted_REVENUE<sub>i</sub>| = " + maeLinear.toFixed(3);
       
       // ----------------- Plotting the Quadratic Model -----------------
       Plotly.newPlot('quadraticPlot', [
@@ -387,13 +391,14 @@
         shapes: quadraticShapes
       });
       
-      // Update the quadratic model equation display (B0: 1 decimal, B1: 2 decimals, B2: 6 decimals).
+      // Update the quadratic model equation display.
       document.getElementById("equation_quadratic").innerHTML =
-        `REVENUE = ${B0_quadratic.toFixed(1)} + ${B1_quadratic.toFixed(2)} * Search_AdSpending + ${B2_quadratic.toFixed(6)} * Search_AdSpending²`;
+        "<strong>Quadratic Model:</strong> REVENUE = " + B0_quadratic.toFixed(1) + " + " + B1_quadratic.toFixed(2) + " * Search_AdSpending + " + B2_quadratic.toFixed(6) + " * (Search_AdSpending)<sup>2</sup>";
       
       // Calculate and display the MAE for the quadratic model.
       let maeQuadratic = data.x.reduce((sum, x, i) => sum + Math.abs(data.y[i] - (B0_quadratic + B1_quadratic * x + B2_quadratic * Math.pow(x, 2))), 0) / data.x.length;
-      document.getElementById("mae_quadratic").textContent = "Mean Absolute Error (MAE) = " + maeQuadratic.toFixed(3);
+      document.getElementById("mae_quadratic").innerHTML =
+        "<strong>MAE:</strong> (1/N) Σ |Actual_REVENUE<sub>i</sub> − Predicted_REVENUE<sub>i</sub>| = " + maeQuadratic.toFixed(3);
     }
     
     // Load the CSV data from "data.csv" and update the plots.
