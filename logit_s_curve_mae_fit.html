@@ -19,12 +19,13 @@
     <h2>Interactive Logistic Fit</h2>
     
     <h3>Logistic Model Controls</h3>
-    <label>a (Min Value): <input type="range" id="a" min="0" max="50" step="0.5" value="10" oninput="updatePlot()"> <span id="a_value">10</span></label><br>
-    <label>b (Max Value): <input type="range" id="b" min="50" max="200" step="0.5" value="100" oninput="updatePlot()"> <span id="b_value">100</span></label><br>
-    <label>k (Growth Rate): <input type="range" id="k" min="-0.1" max="0.1" step="0.0001" value="0.01" oninput="updatePlot()"> <span id="k_value">0.01</span></label><br>
-    <label>x₀ (Midpoint): <input type="range" id="x0" min="500" max="1500" step="0.0001" value="1000" oninput="updatePlot()"> <span id="x0_value">1000</span></label><br>
+    <label>a (Min Value): <input type="range" id="a" min="-100" max="200" step="0.5" value="10" oninput="updatePlot()"> <input type="number" id="a_text" step="0.5" value="10" oninput="syncSlider('a')"></label><br>
+    <label>b (Max Value): <input type="range" id="b" min="201" max="2000" step="0.5" value="100" oninput="updatePlot()"> <input type="number" id="b_text" step="0.5" value="100" oninput="syncSlider('b')"></label><br>
+    <label>k (Growth Rate): <input type="range" id="k" min="-0.2" max="0.2" step="0.0001" value="0.01" oninput="updatePlot()"> <input type="number" id="k_text" step="0.0001" value="0.01" oninput="syncSlider('k')"></label><br>
+    <label>x₀ (Midpoint): <input type="range" id="x0" min="0" max="1500" step="0.0001" value="1000" oninput="updatePlot()"> <input type="number" id="x0_text" step="0.0001" value="1000" oninput="syncSlider('x0')"></label><br>
     
     <p id="equation" class="equation"></p>
+    <p id="mae" class="equation"></p>
     <div id="logisticPlot"></div>
     
     <script>
@@ -47,6 +48,11 @@
             return a + (b - a) / (1 + Math.exp(-k * (x - x0)));
         }
 
+        function syncSlider(id) {
+            document.getElementById(id).value = document.getElementById(id + "_text").value;
+            updatePlot();
+        }
+
         let data;
         loadCSV().then(loadedData => {
             data = loadedData;
@@ -61,26 +67,34 @@
             let k = parseFloat(document.getElementById("k").value);
             let x0 = parseFloat(document.getElementById("x0").value);
 
-            document.getElementById("a_value").textContent = a.toFixed(3);
-            document.getElementById("b_value").textContent = b.toFixed(3);
-            document.getElementById("k_value").textContent = k.toFixed(4);
-            document.getElementById("x0_value").textContent = x0.toFixed(4);
+            document.getElementById("a_text").value = a;
+            document.getElementById("b_text").value = b;
+            document.getElementById("k_text").value = k;
+            document.getElementById("x0_text").value = x0;
 
             let xFit = Array.from({length: 100}, (_, i) => i * 20);
             let yFit = xFit.map(x => logisticFunction(x, a, b, k, x0));
             
             let absErrorLines = [];
+            let mae = 0;
             data.x.forEach((xi, i) => {
+                let predicted = logisticFunction(xi, a, b, k, x0);
+                mae += Math.abs(data.y[i] - predicted);
                 absErrorLines.push({
                     x: [xi, xi],
-                    y: [data.y[i], logisticFunction(xi, a, b, k, x0)],
+                    y: [data.y[i], predicted],
                     mode: 'lines',
                     line: {color: 'gray', dash: 'dot', width: 1},
                     showlegend: false
                 });
             });
+            mae /= data.x.length;
             
-            let layout = {yaxis: {range: [Math.min(...data.y) - 5, Math.max(...data.y) + 5]}, title: "Logistic Fit"};
+            let layout = {
+                yaxis: {range: [Math.min(...data.y) - 5, Math.max(...data.y) + 5], title: "REVENUE"},
+                xaxis: {title: "Search Ad Spending ($)"},
+                title: "Logistic Fit"
+            };
             
             Plotly.newPlot('logisticPlot', [
                 {x: data.x, y: data.y, mode: 'markers', type: 'scatter', name: 'Actual Data', marker: {color: 'blue'}},
@@ -88,7 +102,8 @@
                 ...absErrorLines
             ], layout);
             
-            document.getElementById("equation").innerHTML = `f(x) = ${a.toFixed(3)} + \frac{(${b.toFixed(3)} - ${a.toFixed(3)})}{1 + e^{-${k.toFixed(4)}(x - ${x0.toFixed(4)})}}`;
+            document.getElementById("equation").innerHTML = `f(x) = REVENUE = ${a.toFixed(3)} + (${b.toFixed(3)} - ${a.toFixed(3)}) / (1 + e^{-(${k.toFixed(4)}(x - ${x0.toFixed(4)}))})`;
+            document.getElementById("mae").innerHTML = `Mean Absolute Error (MAE): ${mae.toFixed(2)}`;
         }
     </script>
 </body>
