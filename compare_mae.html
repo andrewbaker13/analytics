@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive MAE Visualization</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    .equation {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Linear and Quadratic Fit with MAE Calculation</h2>
+  
+  <h3>Linear Model Controls</h3>
+  <label>B0: <input type="range" id="B0_linear" min="-100" max="200" step="10" value="20" oninput="updatePlot()"> <span id="B0_linear_value">20</span></label><br>
+  <label>B1: <input type="range" id="B1_linear" min="-0.05" max="0.75" step="0.05" value="0.50" oninput="updatePlot()"> <span id="B1_linear_value">0.50</span></label><br>
+  
+  <p id="equation_linear" class="equation"></p>
+  <div id="linearPlot"></div>
+  <p id="mae_linear" class="equation"></p>
+  
+  <h3>Quadratic Model Controls</h3>
+  <label>B0: <input type="range" id="B0_quadratic" min="-100" max="200" step="10" value="20" oninput="updatePlot()"> <span id="B0_quadratic_value">20</span></label><br>
+  <label>B1: <input type="range" id="B1_quadratic" min="-0.05" max="0.75" step="0.05" value="0.50" oninput="updatePlot()"> <span id="B1_quadratic_value">0.50</span></label><br>
+  <label>B2: <input type="range" id="B2_quadratic" min="-0.0005" max="0.0005" step="0.0001" value="0.0001" oninput="updatePlot()"> <span id="B2_quadratic_value">0.0001</span></label><br>
+  
+  <p id="equation_quadratic" class="equation"></p>
+  <div id="quadraticPlot"></div>
+  <p id="mae_quadratic" class="equation"></p>
+  
+  <script>
+    function generateData() {
+      let x = [];
+      let y = [];
+      for (let i = 0; i < 30; i++) {
+        let x_val = Math.random() * 2000;
+        let noise = (Math.random() - 0.5) * 200;
+        let y_val = 100 + 0.75 * x_val - 0.0002 * Math.pow(x_val, 2) + noise;
+        x.push(x_val);
+        y.push(y_val);
+      }
+      return {x, y};
+    }
+    
+    let data = generateData();
+    let yMin = Math.min(...data.y) - 5;
+    let yMax = Math.max(...data.y) + 5;
+    
+    function updatePlot() {
+      let B0_linear = parseFloat(document.getElementById("B0_linear").value);
+      let B1_linear = parseFloat(document.getElementById("B1_linear").value);
+      let B0_quadratic = parseFloat(document.getElementById("B0_quadratic").value);
+      let B1_quadratic = parseFloat(document.getElementById("B1_quadratic").value);
+      let B2_quadratic = parseFloat(document.getElementById("B2_quadratic").value);
+    
+      document.getElementById("B0_linear_value").textContent = B0_linear;
+      document.getElementById("B1_linear_value").textContent = B1_linear;
+      document.getElementById("B0_quadratic_value").textContent = B0_quadratic;
+      document.getElementById("B1_quadratic_value").textContent = B1_quadratic;
+      document.getElementById("B2_quadratic_value").textContent = B2_quadratic;
+    
+      let xFit = Array.from({length: 100}, (_, i) => i * 20);
+      let yLinear = xFit.map(x => B0_linear + B1_linear * x);
+      let yQuadratic = xFit.map(x => B0_quadratic + B1_quadratic * x + B2_quadratic * Math.pow(x, 2));
+      
+      let layout = {yaxis: {range: [yMin, yMax]}};
+    
+      Plotly.newPlot('linearPlot', [
+        {x: data.x, y: data.y, mode: 'markers', type: 'scatter', name: 'Actual Data', marker: {color: 'blue'}},
+        {x: xFit, y: yLinear, mode: 'lines', type: 'scatter', name: 'Linear Fit', line: {color: 'red'}}
+      ], {...layout, title: 'Linear Fit'});
+      
+      document.getElementById("equation_linear").innerHTML =
+        `REVENUE = ${B0_linear.toFixed(3)} + ${B1_linear.toFixed(3)} * Search_Ad_Spending`;
+    
+      Plotly.newPlot('quadraticPlot', [
+        {x: data.x, y: data.y, mode: 'markers', type: 'scatter', name: 'Actual Data', marker: {color: 'blue'}},
+        {x: xFit, y: yQuadratic, mode: 'lines', type: 'scatter', name: 'Quadratic Fit', line: {color: 'red'}}
+      ], {...layout, title: 'Quadratic Fit'});
+      
+      document.getElementById("equation_quadratic").innerHTML =
+        `REVENUE = ${B0_quadratic.toFixed(3)} + ${B1_quadratic.toFixed(3)} * Search_Ad_Spending + ${B2_quadratic.toFixed(4)} * Search_Ad_Spending²`;
+      
+      // Calculate MAE for Linear Model
+      let maeLinear = data.x.reduce((sum, x, i) => {
+        return sum + Math.abs(data.y[i] - (B0_linear + B1_linear * x));
+      }, 0) / data.x.length;
+      
+      // Calculate MAE for Quadratic Model
+      let maeQuadratic = data.x.reduce((sum, x, i) => {
+        return sum + Math.abs(data.y[i] - (B0_quadratic + B1_quadratic * x + B2_quadratic * Math.pow(x, 2)));
+      }, 0) / data.x.length;
+    
+      document.getElementById("mae_linear").textContent = "MAE (Linear): " + maeLinear.toFixed(3);
+      document.getElementById("mae_quadratic").textContent = "MAE (Quadratic): " + maeQuadratic.toFixed(3);
+    }
+    
+    updatePlot();
+  </script>
+</body>
+</html>
