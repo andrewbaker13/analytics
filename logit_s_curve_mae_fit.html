@@ -75,24 +75,19 @@
             let xFit = Array.from({length: 100}, (_, i) => i * 20);
             let yFit = xFit.map(x => logisticFunction(x, a, b, k, x0));
             
-            let absErrorLines = [];
-            let mae = 0;
-            data.x.forEach((xi, i) => {
-                let predicted = logisticFunction(xi, a, b, k, x0);
-                mae += Math.abs(data.y[i] - predicted);
-                absErrorLines.push({
-                    x: [xi, xi],
-                    y: [data.y[i], predicted],
-                    mode: 'lines',
-                    line: {color: 'gray', dash: 'dot', width: 1},
-                    showlegend: false
-                });
-            });
-            mae /= data.x.length;
+            let xMin = 0;
+            let xMax = Math.max(...data.x) + 10;
+            let absErrorLines = data.x.map((xi, i) => ({
+                x: [xi, xi],
+                y: [data.y[i], logisticFunction(xi, a, b, k, x0)],
+                mode: 'lines',
+                line: {color: 'orange', dash: 'dot', width: 1},
+                showlegend: false
+            }));
             
             let layout = {
                 yaxis: {range: [Math.min(...data.y) - 5, Math.max(...data.y) + 5], title: "REVENUE"},
-                xaxis: {title: "Search Ad Spending ($)"},
+                xaxis: {range: [xMin, xMax], title: "Search Ad Spending ($)"},
                 title: "Logistic Fit"
             };
             
@@ -102,6 +97,7 @@
                 ...absErrorLines
             ], layout);
             
+            let mae = data.x.reduce((sum, xi, i) => sum + Math.abs(data.y[i] - logisticFunction(xi, a, b, k, x0)), 0) / data.x.length;
             document.getElementById("equation").innerHTML = `f(x) = REVENUE = ${a.toFixed(3)} + (${b.toFixed(3)} - ${a.toFixed(3)}) / (1 + e^{-(${k.toFixed(4)}(x - ${x0.toFixed(4)}))})`;
             document.getElementById("mae").innerHTML = `Mean Absolute Error (MAE): ${mae.toFixed(2)}`;
         }
